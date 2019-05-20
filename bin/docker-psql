@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+docker exec -it `docker ps | grep sentry_postgres | awk '{print $1}'` bash -c "psql -U postgres sentry"
