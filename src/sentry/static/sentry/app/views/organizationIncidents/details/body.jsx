@@ -1,12 +1,10 @@
 import React from 'react';
-import moment from 'moment';
 import styled from 'react-emotion';
 
 import {PageContent} from 'app/styles/organization';
 import {t} from 'app/locale';
-import LineChart from 'app/components/charts/lineChart';
+import Chart from 'app/views/organizationIncidents/details/chart';
 import Link from 'app/components/links/link';
-import MarkPoint from 'app/components/charts/components/markPoint';
 import NavTabs from 'app/components/navTabs';
 import SeenByList from 'app/components/seenByList';
 import SentryTypes from 'app/sentryTypes';
@@ -15,21 +13,10 @@ import theme from 'app/utils/theme';
 
 import Activity from './activity';
 import IncidentsSuspects from './suspects';
-import detectedSymbol from './detectedSymbol';
-import closedSymbol from './closedSymbol';
 
 const TABS = {
   activity: {name: t('Activity'), component: Activity},
 };
-
-function getClosestIndex(data, needle) {
-  const index = data.findIndex(([ts], i) => ts > needle);
-  if (index === 0) {
-    return 0;
-  }
-
-  return index !== -1 ? index - 1 : data.length - 1;
-}
 
 export default class DetailsBody extends React.Component {
   static propTypes = {
@@ -49,28 +36,6 @@ export default class DetailsBody extends React.Component {
     const {params, incident} = this.props;
     const {activeTab} = this.state;
     const ActiveComponent = TABS[activeTab].component;
-
-    const chartData =
-      incident &&
-      incident.eventStats.data.map(([ts, val], i) => {
-        return [
-          ts * 1000,
-          val.length ? val.reduce((acc, {count} = {count: 0}) => acc + count, 0) : 0,
-        ];
-      });
-
-    const detectedTs = incident && moment.utc(incident.dateDetected).unix();
-    const closedTs =
-      incident && incident.dateClosed && moment.utc(incident.dateClosed).unix();
-
-    const closestDetectedTimestampIndex =
-      detectedTs && getClosestIndex(incident.eventStats.data, detectedTs);
-    const closestClosedTimestampIndex =
-      closedTs && getClosestIndex(incident.eventStats.data, closedTs);
-
-    const detectedCoordinate = chartData && chartData[closestDetectedTimestampIndex];
-    const closedCoordinate =
-      chartData && closedTs && chartData[closestClosedTimestampIndex];
 
     return (
       <StyledPageContent>
@@ -99,33 +64,10 @@ export default class DetailsBody extends React.Component {
         <Sidebar>
           <PageContent>
             {incident && (
-              <LineChart
-                isGroupedByDate
-                series={[
-                  {
-                    seriesName: t('Events'),
-                    dataArray: chartData,
-                    markPoint: MarkPoint({
-                      data: [
-                        {
-                          symbol: `image://${detectedSymbol}`,
-                          name: t('Incident Detected'),
-                          coord: detectedCoordinate,
-                        },
-                        ...(closedTs
-                          ? [
-                              {
-                                symbol: `image://${closedSymbol}`,
-                                symbolSize: 24,
-                                name: t('Incident Closed'),
-                                coord: closedCoordinate,
-                              },
-                            ]
-                          : []),
-                      ],
-                    }),
-                  },
-                ]}
+              <Chart
+                data={incident.eventStats.data}
+                detected={incident.dateDetected}
+                closed={incident.dateClosed}
               />
             )}
             <IncidentsSuspects suspects={[]} />
