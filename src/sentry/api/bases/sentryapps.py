@@ -33,6 +33,13 @@ def ensure_scoped_permission(request, allowed_scopes):
     return any(request.access.has_scope(s) for s in set(allowed_scopes))
 
 
+def add_integration_platform_metric_tag(func):
+    def decorator(self, *args, **kwargs):
+        self.add_metric_tags(integration_platform=True)
+        return func(self, *args, **kwargs)
+    return decorator
+
+
 class SentryAppsPermission(SentryPermission):
     scope_map = {
         'GET': (),  # Public endpoint.
@@ -58,7 +65,13 @@ class SentryAppsPermission(SentryPermission):
         )
 
 
-class SentryAppsBaseEndpoint(Endpoint):
+class IntegrationPlatformEndpoint(Endpoint):
+    def dispatch(self, request, *args, **kwargs):
+        self.add_metric_tags(integration_platform=True)
+        return super(IntegrationPlatformEndpoint, self).dispatch(request, *args, **kwargs)
+
+
+class SentryAppsBaseEndpoint(IntegrationPlatformEndpoint):
     permission_classes = (SentryAppsPermission, )
 
     def convert_args(self, request, *args, **kwargs):
@@ -131,7 +144,7 @@ class SentryAppPermission(SentryPermission):
             return self.unpublished_scope_map
 
 
-class SentryAppBaseEndpoint(Endpoint):
+class SentryAppBaseEndpoint(IntegrationPlatformEndpoint):
     permission_classes = (SentryAppPermission, )
 
     def convert_args(self, request, sentry_app_slug, *args, **kwargs):
@@ -175,7 +188,7 @@ class SentryAppInstallationsPermission(SentryPermission):
         )
 
 
-class SentryAppInstallationsBaseEndpoint(Endpoint):
+class SentryAppInstallationsBaseEndpoint(IntegrationPlatformEndpoint):
     permission_classes = (SentryAppInstallationsPermission, )
 
     def convert_args(self, request, organization_slug, *args, **kwargs):
@@ -226,7 +239,7 @@ class SentryAppInstallationPermission(SentryPermission):
         )
 
 
-class SentryAppInstallationBaseEndpoint(Endpoint):
+class SentryAppInstallationBaseEndpoint(IntegrationPlatformEndpoint):
     permission_classes = (SentryAppInstallationPermission, )
 
     def convert_args(self, request, uuid, *args, **kwargs):

@@ -41,6 +41,15 @@ class EndpointTest(APITestCase):
 
         assert response['Access-Control-Allow-Origin'] == 'http://example.com'
 
+    def test_add_metric_tags(self):
+        request = HttpRequest()
+        endpoint = DummyEndpoint()
+        endpoint.request = request
+
+        endpoint.add_metric_tags(foo='bar')
+
+        assert endpoint.request._metric_tags['foo'] == 'bar'
+
 
 class EndpointJSONBodyTest(APITestCase):
     def setUp(self):

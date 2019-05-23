@@ -127,6 +127,12 @@ class Endpoint(APIView):
         except JSONDecodeError:
             return
 
+    def add_metric_tags(self, *args, **kwargs):
+        if not hasattr(self.request, '_metric_tags'):
+            self.request._metric_tags = {}
+
+        self.request._metric_tags.update(**kwargs)
+
     def initialize_request(self, request, *args, **kwargs):
         rv = super(Endpoint, self).initialize_request(request, *args, **kwargs)
         # If our request is being made via our internal API client, we need to
@@ -150,6 +156,10 @@ class Endpoint(APIView):
         self.load_json_body(request)
         self.request = request
         self.headers = self.default_response_headers  # deprecate?
+
+        # Tags that will ultimately flow into the metrics backend at the end of
+        # the request (happens via middleware/stats.py).
+        request._metric_tags = {}
 
         if settings.SENTRY_API_RESPONSE_DELAY:
             time.sleep(settings.SENTRY_API_RESPONSE_DELAY / 1000.0)
