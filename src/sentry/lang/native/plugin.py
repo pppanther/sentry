@@ -386,7 +386,7 @@ def reprocess_minidump(data):
         merge_symbolicator_minidump_response(data, response)
 
     event_cache_key = cache_key_for_event(data)
-    default_cache.set(event_cache_key, dict(data), 3600)
+    default_cache.set(event_cache_key, data, 3600)
     default_cache.set(minidump_is_reprocessed_cache_key, True, 3600)
 
     return data
