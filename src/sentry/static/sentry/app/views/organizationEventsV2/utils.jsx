@@ -10,7 +10,7 @@ export const ALL_VIEWS = deepFreeze([
     data: {
       query: '',
       fields: ['event', 'event.type', 'project.name', 'user', 'time'],
-      groupBy: [],
+      groupby: [],
       aggregations: [],
       sort: '',
     },
@@ -41,7 +41,7 @@ export const ALL_VIEWS = deepFreeze([
     data: {
       query: '',
       fields: ['project.name', 'count', 'user_count'],
-      groupBy: ['count', 'user_count', 'project.name'],
+      groupby: ['count', 'user_count', 'project.name'],
       aggregations: [['count', null, 'count'], ['count', 'user', 'user_count']],
       sort: '',
     },
@@ -107,7 +107,7 @@ export function getQuery(view) {
     return list;
   }, []);
 
-  data.fields = [...new Set(fields)];
+  data.field = [...new Set(fields)];
 
   return data;
 }
