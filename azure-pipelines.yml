@@ -30,7 +30,9 @@ steps:
     pip install -r requirements-dev.txt
   displayName: 'Install dependencies'
 
-- script: |
-    pip install pytest pytest-azurepipelines
-    pytest
-  displayName: 'pytest'
+- task: Docker@2
+  inputs:
+    containerRegistry: 'sherlockcr'
+    repository: 'sentry.dev'
+    command: 'buildAndPush'
+    Dockerfile: '**/Dockerfile'
